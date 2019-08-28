@@ -8,6 +8,9 @@
     "express": "^4.17.1",
     "express-list-endpoints": "^4.0.1",
     "ibm-watson": "^4.3.1",
+    "joi": "^14.3.1",
+    "joi-objectid": "^2.0.0",
+    "mongoose": "^5.6.11",
     "python": "^0.0.4"
   },
   "devDependencies": {},

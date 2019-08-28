@@ -1,7 +1,13 @@
 
 const express = require('express');
 const all_routes = require('express-list-endpoints')
-
+const mongoose = require('mongoose')
+const db = require('./config/keys').mongoURI
+mongoose
+    .connect(db, { useNewUrlParser: true })
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.log(err))
+    mongoose.set('useFindAndModify', false);
 var cors=require('cors');
 const app = express();
 const explore = (req, res) => {
