@@ -30,9 +30,17 @@ app.use(cors());
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use('/explore', explore)
-const messages=require('./message.js');
-app.use('/api/v1/messages', messages);
+const startSession=require('./api/routes/startSession.route');
+app.use('/api/v1/startSession', startSession);
 
+const message=require('./api/routes/message.route');
+app.use('/api/v1/message', message);
+
+const viewHistory=require('./api/routes/viewHistory.route');
+app.use('/api/v1/viewHistory', viewHistory);
+   
+const closeSession=require('./api/routes/closeSession.route');
+app.use('/api/v1/closeSession', closeSession);
    
 const port = process.env.PORT || 3333
 
