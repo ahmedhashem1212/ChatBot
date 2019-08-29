@@ -36,11 +36,7 @@ router.post('/start', async (req, res) => {
   const result = Joi.validate(req.body, schema);
  if (result.error) return res.status(400).send({ 'StatusCode': 1044 });
 
-const today = new Date();
-const date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-const time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
-const StartDate = date+' '+time;
-
+const StartDate = new Date();
 const sessionFound = await Session.findOne({ userId: req.body.User.id, endDate: null })
 console.log(sessionFound)
 if(sessionFound){
@@ -145,7 +141,9 @@ var  session
       'listOfQA':[qa],
       'userId':req.body.User.id,
       'startDate':StartDate,
-      'endDate':null
+      'endDate':null,
+      'duration': null,
+      'numberOfQuestionAndAnswer': 1
     })
    
      await res.send({'StatusCode':0,
@@ -175,11 +173,7 @@ router.post('/messages', async (req, res) => {
   const result = Joi.validate(req.body, schema);
  if (result.error) return res.status(400).send({ 'StatusCode': 1044 });
 
-  const today = new Date();
-const date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-const time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
-const dateNow = date+' '+time;
-
+  const dateNow = new Date();
 const sessionFound = await Session.findOne({ '_id': sessionId})
 if(!sessionFound){
   res.status(400).send({'StatusCode':1011});
@@ -205,8 +199,10 @@ if(!sessionFound){
     'Question':question,
     'Answer':answer}
     )
-   
+   const SessionUpdating = await Session.findOne({'_id':sessionId})
+   const numberOfQuestionAndAnswer = SessionUpdating.numberOfQuestionAndAnswer
   await Session.updateOne({'_id':sessionId},{
+    'numberOfQuestionAndAnswer':numberOfQuestionAndAnswer+1,
     $push :{
       'listOfQA':qa
     }
@@ -234,10 +230,8 @@ router.post('/close', async (req, res) => {
   const result = Joi.validate(req.body, schema);
  if (result.error) return res.status(400).send({ 'StatusCode': 1044 });
 
-  const today = new Date();
-const date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-const time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
-const EndDate = date+' '+time;
+  const EndDate = new Date();
+
 const sessionId = req.body.Session.id
 const sessionFound = await Session.findOne({ '_id': sessionId})
 if(!sessionFound){
@@ -248,11 +242,46 @@ if(!sessionFound){
   if(!sessionFound2){
     res.status(404).send({'StatusCode':1022})
   }else{
-await Session.updateOne({'_id':sessionId}, {'endDate':EndDate})
+ const session=  await Session.findOne({'_id':sessionId})
+ 
+//  var mindiff = EndDate.getMinutes() - session.startDate.getMinutes();
+//  var hourdiff = session.startDate.getHours() ;
+//  if(mindiff < 0)
+//  {
+//   hourdiff = hourdiff - 1 ;
+//   mindiff += 60 ;
+//  }
+//  else{
+//  hourdiff = EndDate.getHours() - session.startDate.getHours();
+//  }
+var diff = Date.now() - session.startDate.getTime();
+var seconds = diff/1000<1?0:diff/1000;
+var minutes = diff/60000<1?0:diff/60000;
+var hours = diff/3600000<1?0:diff/3600000;
+let diffSeconds = Math.floor(seconds)/60
+seconds = seconds%60
+minutes = minutes+diffSeconds
+let diffMinutes = Math.floor(minutes)/60
+minutes = minutes%60
+hours = hours +diffMinutes
+ var duration = {
+   'hours':hours,
+   'minutes':minutes,
+   'seconds':seconds
+  //  if(endDate.getDate() < startDate.getDay())
+  //  {
+  //   new Date(new Date().getTime() - 2*24*(60*diff)*1000).toLocaleDateString()
+  //  }
+   
+ }
+console.log(duration)
+await Session.updateOne({'_id':sessionId}, {'endDate':EndDate
+,'duration':duration})
 res.send({'StatusCode':0})
+
   }
 }}catch(err){
-  res.status(400).send({'StatusCode':1055})
+  res.status(400).send(err.message)
 }
 });
 
@@ -303,5 +332,7 @@ try{
 //   res.send();
 //   });
   //Close Session Innput :SessionId
-  
+  router.post('/viewAll', async (req, res) => {
+  res.json(await Session.find())
+  })
   module.exports = router

@@ -7,7 +7,7 @@ const AnswerSchema = new Schema({
         required: true
     },
     date: {
-        type: String
+        type: Date
     }
 })
 
